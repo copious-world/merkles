@@ -125,3 +125,7 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+c++/merkle-tree/
+v/crdt.py
+v/crdt.go
+js/m_bcrypto.js
