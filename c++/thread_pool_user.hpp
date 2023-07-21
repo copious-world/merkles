@@ -12,7 +12,7 @@
 #include <type_traits>
 #include <cassert>
 #include <deque>
-#include "picsha2.h"
+#include "picosha2.h"
 
 using namespace std;
 using namespace picosha2;
