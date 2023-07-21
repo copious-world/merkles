@@ -12,8 +12,10 @@
 #include <type_traits>
 #include <cassert>
 #include <deque>
+#include "picsha2.h"
 
 using namespace std;
+using namespace picosha2;
 
 class TaskQueue {
 public:
@@ -32,7 +34,7 @@ public:
     {
         {
             lock_guard<mutex> lock{_m};
-            work.emplace_back(move(p));
+            _work.emplace_back(move(p));
         }
         _v.notify_one();
     }
@@ -78,7 +80,9 @@ public:
     ThreadPoolUser() {
         _thread_count = thread::hardware_concurrency() - 1;
     }
-    virtual ~ThreadPoolUser() {}
+    virtual ~ThreadPoolUser() {
+        finish();
+    }
 
 public: 
 

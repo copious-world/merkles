@@ -113,10 +113,14 @@ public:
 
     /**
      * hash_data
+     * 
+     * default hash is a sha256 hash 
+     * override :: create a subclass with this method overridden to use a better hash...
     */
     bool hash_data(char *data,size_t size,buffer& hash) {
         bool status = true;
-
+        vector<unsigned char> hash(picosha2::k_digest_size);
+        hash256(data, (data + size), hash.begin(), hash.end());
         return status;
     }
 
@@ -331,7 +335,7 @@ public:
                         return false;
                     }
                 );
-                
+
                 p_ptr++;
 
             }
@@ -452,6 +456,17 @@ public:
         pair<HashNode *,buffer> p(nullptr,hash);
         return p;
     }
+
+
+    /**
+     * add_data_use_cores
+    */
+    pair<HashNode *,buffer> add_data_use_cores(list<char *> &chunks, size_t chunk_size) {
+        initialize_pool();
+        auto N = _thread_count;
+        return add_data(chunks,chunk_size,N);
+    }
+
 
 
 public:
