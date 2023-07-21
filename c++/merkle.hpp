@@ -1,4 +1,11 @@
+/*
+
+*/
+
+#pragma once
+
 #ifndef _MERKLE_DEFS_H_
+#define _MERKLE_DEFS_H_
 
 #include <cstddef>
 #include <ctime>
@@ -10,17 +17,10 @@
 #include <list>
 #include <random>
 #include <functional>
+#include "thread_pool_user.hpp"         // ThreadPoolUser
 
 //#include <optional>
 //#include <iostream>
-
-
-// https://github.com/bshoshany/thread-pool
-// https://riptutorial.com/cplusplus/example/15806/create-a-simple-thread-pool
-// https://github.com/Liam0205/toy-threadpool
-// https://vorbrodt.blog/2019/02/12/simple-thread-pool/
-// https://roar11.com/2016/01/a-platform-independent-thread-pool-using-c14/
-// https://en.cppreference.com/w/cpp/language/lambda  closure to worker?
 
 
 using namespace std;
@@ -88,43 +88,6 @@ public:
     list<extended_hash>     _export_hashes;
 };
 
-
-
-
-/**
- * 
-*/
-class ThreadPoolUser {
-public:
-
-    ThreadPoolUser() {}
-    virtual ~ThreadPoolUser() {}
-
-public: 
-
-    class ExtThread {
-    public:
-        ExtThread() {}
-        virtual ~ExtThread() {}
-
-        void runner(function<int(void)> f) {}
-    };
-
-public:
-
-    void initialize_pool() {
-    }
-
-    ExtThread *from_pool() {
-        return nullptr;
-    }
-
-    bool join_all(void) {
-        return true;
-    }
-
-
-};
 
 
 
@@ -357,8 +320,7 @@ public:
                 HashNode *hn1 = vit.base(); vit++;
                 HashNode *hn2 = vit.base(); vit++;
 
-                ExtThread *thred = from_pool();
-                thred->runner(
+                enqueue_status(
                     [=] () {
                         if ( hash_data(chunk1,chunk_size,hn1->_hash) && hash_data(chunk2,chunk_size,hn2->_hash) ) {
                             HashNode *parent = hn1->_p_parent;
@@ -369,11 +331,12 @@ public:
                         return false;
                     }
                 );
+                
                 p_ptr++;
 
             }
             //
-            status = join_all();
+            status = await_status_all();
             //
             size_t N = (_section_count >> 1);
             while (N) {{
@@ -392,8 +355,7 @@ public:
                         HashNode *parent = hn1->_p_parent;
                         //
                         *p_ptr++ = parent;
-                        ExtThread *thred = from_pool();
-                        thred->runner(
+                        enqueue_status(
                             [=]() {
                                 combine_hash(hn1->_hash,hn2->_hash,parent->_hash);
                                 return false;
@@ -401,7 +363,7 @@ public:
                         );
                     }
                     //
-                    status = join_all();
+                    status = await_status_all();
                     //
                 } else {
                     top = *p_ptr;
